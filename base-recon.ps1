@@ -1,6 +1,6 @@
 ﻿# Import-Module Az
 # autentikacija
-# $args
+
 
 function checkSession {
     $Error.Clear()
@@ -35,7 +35,6 @@ function dumpResourceGroups {
 $context = checkSession
 
 $acc = $context.Account
-'[+]Logged in as  ' + $acc.Id
 '[*]Logged user data: '
 $acc
 '[+]Found ' + $acc.ExtendedProperties.Count + ' active/available subscriptions/tenants'
@@ -49,4 +48,6 @@ $subId = $context.Subscription.Id
 
 dumpResourceGroups 
 #-context $context
+
+# todo: upotreba naredbe Get-AzADGroup za dohvat cijelog AD-a (Active Directory) -> dumpa mi se cijeli AD
 # Disconnect-AzAccount
