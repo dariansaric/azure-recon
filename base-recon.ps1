@@ -76,15 +76,13 @@ $acc
 $acc.ExtendedProperties
 
 '[*]Subscription data for active subscription: ' + $context.Subscription.Id
-$context.Subscription
-$subName = $context.Subscription.Name
-$subId = $context.Subscription.Id
+# $context.Subscription
+# $subName = $context.Subscription.Name
+# $subId = $context.Subscription.Id
 # todo: ispis resursa za subscription
 
 dumpResourceGroups 
-#-context $context
 '[*]Trying to fetch Active Directory Groups for domain ' + $context.Account.Id.Split('@')[1]
-# todo: upotreba naredbe Get-AzADGroup za dohvat cijelog AD-a (Active Directory) -> dumpa mi se cijeli AD
 $activeDirectoryGroups = Get-AzADGroup
 if ($activeDirectoryGroups.Count -gt 0) {
     '[+]Found ' + $activeDirectoryGroups.Count + ' Active Directory groups'
@@ -99,7 +97,7 @@ if ($activeDirectoryUsers.Count -gt 0) {
 
     dumpActiveDirectoryUsers -ActiveDirectoryUsers $activeDirectoryUsers
 }
-
-# todo: dohvat AD korisnika
-
+# todo: moguće je izlistati sve korisnike koji pripadaju pojedinoj grupi!!
+# todo: što slijedeće :/
+# todo: koji je logični korak nakon toga? ispis baš svih postojećih resursa :/
 # Disconnect-AzAccount
