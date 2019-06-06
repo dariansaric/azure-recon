@@ -42,15 +42,18 @@ function dumpActiveDirectory {
         $activeDirectoryGroupNames.Add($group.DisplayName)
     }
 
-    $activeDirectoryNames.Count
+    $activeDirectoryGroupNames.Count
     # todo: ispis na ekran i/ili u file
     $name = Read-Host '[?]Would you like to write Active Directory group names to a file?[Y/n]'
     if ($name -eq 'Y') {
         $current_dir = Get-Location
         '[*]Writing Active Directory group names to file "' + $current_dir + '\ad-group-names.txt"...'
-        Add-Content $current_dir + '\ad-group-names.txt' $activeDirectoryGroupNames
+        $ADGroupNamesFilePath = '.\ad-group-names.txt'
+        # Set-Content $ADGroupNamesFilePath $activeDirectoryGroupNames
+        $activeDirectoryGroupNames.ToArray() > $ADGroupNamesFilePath
         '[+]Active Directory group names successfully written...'
     }
+    # $activeDirectoryGroupNames
 }
 
 
