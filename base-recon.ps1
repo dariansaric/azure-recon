@@ -1,7 +1,4 @@
 ﻿# Import-Module Az
-# autentikacija
-
-
 function checkSession {
     # [cmdletbinding()]
     $Error.Clear()
@@ -63,7 +60,20 @@ function dumpActiveDirectoryUsers {
         $ADUsersPath = '.\ad-users.txt'
         # Set-Content $ADGroupNamesFilePath $activeDirectoryGroupNames
         $ActiveDirectoryUsers > $ADUsersPath
-        '[+]Active Directory users successfully written...'
+        '[+]Active Directory users successfully written to file...'
+    }
+}
+
+function dumpManagementGroups {
+    param([System.Array]$ManagementGroups)
+
+    $name = Read-Host '[?]Would you like to write management groups to a file?[Y/n]'
+    if ($name -eq 'Y') {
+        $current_dir = Get-Location
+        '[*]Writing management groups to file "' + $current_dir + '\management-groups.txt"...'
+        $ManagementGroupsPath = '.\management-groups.txt'
+        $ManagementGroups > $ManagementGroupsPath
+        '[+]Management groups successfully written to file...'
     }
 }
 
@@ -82,7 +92,7 @@ $acc.ExtendedProperties
 # todo: ispis resursa za subscription
 
 dumpResourceGroups 
-'[*]Trying to fetch Active Directory Groups for domain ' + $context.Account.Id.Split('@')[1]
+'[*]Trying to fetch Active Directory Groups for domain ' + $context.Account.Id.Split('@')[1] + '...'
 $activeDirectoryGroups = Get-AzADGroup
 if ($activeDirectoryGroups.Count -gt 0) {
     '[+]Found ' + $activeDirectoryGroups.Count + ' Active Directory groups'
@@ -90,12 +100,19 @@ if ($activeDirectoryGroups.Count -gt 0) {
     dumpActiveDirectoryGroupNames -ActiveDirectoryGroups $activeDirectoryGroups
 }
 
-'[*]Trying to fetch Active Directory users for domain ' + $context.Account.Id.Split('@')[1]
+'[*]Trying to fetch Active Directory users for domain ' + $context.Account.Id.Split('@')[1] + '...'
 $activeDirectoryUsers = Get-AZADUser
 if ($activeDirectoryUsers.Count -gt 0) {
     '[+]Found ' + $activeDirectoryUsers.Count + ' Active Directory users'
 
     dumpActiveDirectoryUsers -ActiveDirectoryUsers $activeDirectoryUsers
+}
+
+'[*]Trying to fetch resource management groups for domain ' + $context.Account.Id.Split('@')[1] + '...'
+Try {
+    dumpManagementGroups -ManagementGroups  $(Get-AzManagementGroup -ErrorAction Stop) # na testiranju ne mogu dalje, pa ne znam kakav je output
+} Catch {
+    '[-]Sorry, user ' + $context.Account.Id + ' does not have authorization to view management groups'
 }
 # todo: moguće je izlistati sve korisnike koji pripadaju pojedinoj grupi!!
 # todo: što slijedeće :/
