@@ -1,4 +1,9 @@
 05.06.2019.
 - preuzet repozitorij s sjedišta: https://github.com/TspringMSFT/PullAzureADSignInReports-.git
-- pokrenuta skripta s mojim vjerodajnicama (VAŽNO za naglasiti da moj account nema pristup AD-u)
+- pokrenuta skripta s mojim vjerodajnicama (VAŽNO za naglasiti da moj account nema pristup AD-u na portalu)
 - napisati modul koji će prvo enumerirati dopuštenja korisnika (ako je to moguće)
+
+06.06.2019.
+- napisan potpun modul za enumeraciju AD grupa, korisnika i pripadnosti AD grupama
+- napisan modul za enumeraciju Management grupa (moj account nema nikakav pristup)
+- slijedeći korak: enumeracija resursa -> komad po komad
