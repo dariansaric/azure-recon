@@ -36,13 +36,21 @@ function dumpResourceGroups {
 function dumpActiveDirectory {
     # [cmdletB]
     param([System.Array]$ActiveDirectoryGroups)
-    $activeDirectoryNames = New-Object System.Collections.Generic.List[String]
+    $activeDirectoryGroupNames = New-Object System.Collections.Generic.List[String]
     $ActiveDirectoryGroups | ForEach-Object -Process {
         $group = $_
-        $activeDirectoryNames.Add($group.DisplayName)
+        $activeDirectoryGroupNames.Add($group.DisplayName)
     }
 
     $activeDirectoryNames.Count
+    # todo: ispis na ekran i/ili u file
+    $name = Read-Host '[?]Would you like to write Active Directory group names to a file?[Y/n]'
+    if ($name -eq 'Y') {
+        $current_dir = Get-Location
+        '[*]Writing Active Directory group names to file "' + $current_dir + '\ad-group-names.txt"...'
+        Add-Content $current_dir + '\ad-group-names.txt' $activeDirectoryGroupNames
+        '[+]Active Directory group names successfully written...'
+    }
 }
 
 
@@ -70,5 +78,7 @@ if ($activeDirectoryGroups.Count -gt 0) {
     # todo: ispis naziva svih grupa AD-a
     dumpActiveDirectory -ActiveDirectoryGroups $activeDirectoryGroups
 }
+
+# todo: dohvat AD korisnika
 
 # Disconnect-AzAccount
