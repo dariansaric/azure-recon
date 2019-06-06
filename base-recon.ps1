@@ -42,8 +42,6 @@ function dumpActiveDirectoryGroupNames {
         $activeDirectoryGroupNames.Add($group.DisplayName)
     }
 
-    $activeDirectoryGroupNames.Count
-    # todo: ispis na ekran i/ili u file
     $name = Read-Host '[?]Would you like to write Active Directory group names to a file?[Y/n]'
     if ($name -eq 'Y') {
         $current_dir = Get-Location
@@ -53,12 +51,20 @@ function dumpActiveDirectoryGroupNames {
         $activeDirectoryGroupNames.ToArray() > $ADGroupNamesFilePath
         '[+]Active Directory group names successfully written...'
     }
-    # $activeDirectoryGroupNames
 }
 
 function dumpActiveDirectoryUsers {
     param([System.Array]$ActiveDirectoryUsers)
     # todo: trebam li nešto uopće dodatno
+    $name = Read-Host '[?]Would you like to write Active Directory users to a file?[Y/n]'
+    if ($name -eq 'Y') {
+        $current_dir = Get-Location
+        '[*]Writing Active Directory users to file "' + $current_dir + '\ad-users.txt"...'
+        $ADUsersPath = '.\ad-users.txt'
+        # Set-Content $ADGroupNamesFilePath $activeDirectoryGroupNames
+        $ActiveDirectoryUsers > $ADUsersPath
+        '[+]Active Directory users successfully written...'
+    }
 }
 
 $context = checkSession
@@ -91,7 +97,7 @@ $activeDirectoryUsers = Get-AZADUser
 if ($activeDirectoryUsers.Count -gt 0) {
     '[+]Found ' + $activeDirectoryUsers.Count + ' Active Directory users'
 
-    dumpActiveDirectoryUsers
+    dumpActiveDirectoryUsers -ActiveDirectoryUsers $activeDirectoryUsers
 }
 
 # todo: dohvat AD korisnika
