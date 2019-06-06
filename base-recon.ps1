@@ -33,7 +33,7 @@ function dumpResourceGroups {
     Return $groups
 }
 
-function dumpActiveDirectory {
+function dumpActiveDirectoryGroupNames {
     # [cmdletB]
     param([System.Array]$ActiveDirectoryGroups)
     $activeDirectoryGroupNames = New-Object System.Collections.Generic.List[String]
@@ -56,6 +56,10 @@ function dumpActiveDirectory {
     # $activeDirectoryGroupNames
 }
 
+function dumpActiveDirectoryUsers {
+    param([System.Array]$ActiveDirectoryUsers)
+    # todo: trebam li nešto uopće dodatno
+}
 
 $context = checkSession
 
@@ -73,13 +77,21 @@ $subId = $context.Subscription.Id
 
 dumpResourceGroups 
 #-context $context
-'[*]Listing all Active Directory Groups for domain ' + $context.Account.Id.Split('@')[1]
+'[*]Trying to fetch Active Directory Groups for domain ' + $context.Account.Id.Split('@')[1]
 # todo: upotreba naredbe Get-AzADGroup za dohvat cijelog AD-a (Active Directory) -> dumpa mi se cijeli AD
 $activeDirectoryGroups = Get-AzADGroup
 if ($activeDirectoryGroups.Count -gt 0) {
-    '[+]Found ' + $activeDirectoryGroups.Count + ' active directory groups'
-    # todo: ispis naziva svih grupa AD-a
-    dumpActiveDirectory -ActiveDirectoryGroups $activeDirectoryGroups
+    '[+]Found ' + $activeDirectoryGroups.Count + ' Active Directory groups'
+    
+    dumpActiveDirectoryGroupNames -ActiveDirectoryGroups $activeDirectoryGroups
+}
+
+'[*]Trying to fetch Active Directory users for domain ' + $context.Account.Id.Split('@')[1]
+$activeDirectoryUsers = Get-AZADUser
+if ($activeDirectoryUsers.Count -gt 0) {
+    '[+]Found ' + $activeDirectoryUsers.Count + ' Active Directory users'
+
+    dumpActiveDirectoryUsers
 }
 
 # todo: dohvat AD korisnika
