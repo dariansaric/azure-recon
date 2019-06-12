@@ -24,10 +24,24 @@ function dumpResourceGroups {
     if ($Null -eq $context) {
         Return $Null
     }
-    '[*]Listing all available resource groups...'
+    
     $groups = Get-AzResourceGroup
-    $groups
-    Return $groups
+    '[+]Found ' + $groups.Count + ' resource groups...'
+    if ($groups.Count -gt 0) {
+        $ans = Read-Host '[?]Would you like to dump resource groups to a file?[Y/n]'
+        if ($ans -eq 'Y') {
+            # todo: zapiši u file
+            $current_dir = Get-Location
+            '[*]Writing resource group dump to file "' + $current_dir + '\resource-groups.txt"...'
+            $ResourceGroupFilePath = '.\resource-groups.txt'
+            # Set-Content $ADGroupNamesFilePath $activeDirectoryGroupNames
+            $groups.ToArray() > $ResourceGroupFilePath
+            '[+]Active resource groups successfully written...'
+        }
+        Return $groups
+    }
+
+    Return $Null
 }
 
 function dumpActiveDirectoryGroupNames {
@@ -48,6 +62,9 @@ function dumpActiveDirectoryGroupNames {
         $activeDirectoryGroupNames.ToArray() > $ADGroupNamesFilePath
         '[+]Active Directory group names successfully written...'
     }
+    else {
+        $activeDirectoryGroupNames
+    }
 }
 
 function dumpActiveDirectoryUsers {
@@ -61,6 +78,9 @@ function dumpActiveDirectoryUsers {
         # Set-Content $ADGroupNamesFilePath $activeDirectoryGroupNames
         $ActiveDirectoryUsers > $ADUsersPath
         '[+]Active Directory users successfully written to file...'
+    }
+    else {
+        $ActiveDirectoryUsers
     }
 }
 
@@ -86,12 +106,6 @@ $acc
 $acc.ExtendedProperties
 
 '[*]Subscription data for active subscription: ' + $context.Subscription.Id
-# $context.Subscription
-# $subName = $context.Subscription.Name
-# $subId = $context.Subscription.Id
-# todo: ispis resursa za subscription
-
-dumpResourceGroups 
 '[*]Trying to fetch Active Directory Groups for domain ' + $context.Account.Id.Split('@')[1] + '...'
 $activeDirectoryGroups = Get-AzADGroup
 if ($activeDirectoryGroups.Count -gt 0) {
@@ -101,19 +115,41 @@ if ($activeDirectoryGroups.Count -gt 0) {
 }
 
 '[*]Trying to fetch Active Directory users for domain ' + $context.Account.Id.Split('@')[1] + '...'
-$activeDirectoryUsers = Get-AZADUser
-if ($activeDirectoryUsers.Count -gt 0) {
-    '[+]Found ' + $activeDirectoryUsers.Count + ' Active Directory users'
+Try {
+    $activeDirectoryUsers = Get-AZADUser
+    if ($activeDirectoryUsers.Count -gt 0) {
+        '[+]Found ' + $activeDirectoryUsers.Count + ' Active Directory users'
 
-    dumpActiveDirectoryUsers -ActiveDirectoryUsers $activeDirectoryUsers
+        dumpActiveDirectoryUsers -ActiveDirectoryUsers $activeDirectoryUsers
+    }
+}
+Catch {
+    '[-]Sorry, user ' + $context.Account.Id + ' is not authorized to view Active Directory users...'
 }
 
 '[*]Trying to fetch resource management groups for domain ' + $context.Account.Id.Split('@')[1] + '...'
 Try {
     dumpManagementGroups -ManagementGroups  $(Get-AzManagementGroup -ErrorAction Stop) # na testiranju ne mogu dalje, pa ne znam kakav je output
-} Catch {
+}
+Catch {
     '[-]Sorry, user ' + $context.Account.Id + ' does not have authorization to view management groups'
 }
+
+# todo: ispis korisnika koji mom korisniku dao dozvole
+'[*]Trying to fetch role assignment...'
+Try {
+    Get-AzRoleAssignment -Verbose
+    # todo: proširenje
+}
+Catch {
+    '[-]Unable to fetch role assignment...'
+}
+
+'[*]Trying to fetch resource groups...'
+$groups = dumpResourceGroups
+$groups
+
+# dumpResourceGroups
 # todo: moguće je izlistati sve korisnike koji pripadaju pojedinoj grupi!!
 # todo: što slijedeće :/
 # todo: koji je logični korak nakon toga? ispis baš svih postojećih resursa :/
