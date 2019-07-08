@@ -1,4 +1,9 @@
 ﻿# Import-Module Az
+param(
+    [System.String]$Scope = 'All',
+    [String]$OutputFormat = 'Text',
+    [PSCredential]$Credential = $(Get-Credential)
+)
 function checkSession {
     # todo: autentifikacija pomoću Get-Credential!!!
     # [cmdletbinding()]
@@ -8,7 +13,7 @@ function checkSession {
         # todo: ne radi ispis čuda u funkciji
         "[X] You are not logged in on any Azure service, login with a username and password..."
         '[*] Logging in to Azure with custom credentials...'
-        $connection = Connect-AzAccount -Credential $(Get-Credential)
+        $connection = Connect-AzAccount -Credential $Credential
         if ($Null -eq $connection) {
             '[-] Login failed, check your credentials and try again!'
             Return $Null
@@ -29,19 +34,19 @@ function dumpResourceGroups {
     $groups = Get-AzResourceGroup
     '[+] Found ' + $groups.Count + ' resource groups...'
     if ($groups.Count -gt 0) {
-        $ans = Read-Host '[?] Would you like to dump resource groups to a file?[Y/n]'
-        if ($ans -eq 'Y') {
-            # todo: zapiši u file
+        if ('Text' -eq $OutputFormat) {
             $current_dir = Get-Location
             '[*] Writing resource group dump to file "' + $current_dir + '\resource-groups.txt"...'
             $ResourceGroupFilePath = '.\resource-groups.txt'
-            # Set-Content $ADGroupNamesFilePath $activeDirectoryGroupNames
+
             # $groups.ToArray() > $ResourceGroupFilePath
             $groups > $ResourceGroupFilePath
             '[+] Active resource groups successfully written...'
         }
-        '[*] Dumping resource groups...'
-        $groups
+        else {
+            '[*] Dumping resource groups...'
+            $groups
+        }
         Return $groups
     }
 
@@ -49,7 +54,6 @@ function dumpResourceGroups {
 }
 
 function dumpActiveDirectoryGroupNames {
-    # [cmdletB]
     param([System.Array]$ActiveDirectoryGroups)
     $activeDirectoryGroupNames = New-Object System.Collections.Generic.List[String]
     $ActiveDirectoryGroups | ForEach-Object -Process {
@@ -57,8 +61,7 @@ function dumpActiveDirectoryGroupNames {
         $activeDirectoryGroupNames.Add($group.DisplayName)
     }
 
-    $name = Read-Host '[?] Would you like to write Active Directory group names to a file?[Y/n]'
-    if ($name -eq 'Y') {
+    if ('Text' -eq $OutputFormat) {
         $current_dir = Get-Location
         '[*] Writing Active Directory group names to file "' + $current_dir + '\ad-group-names.txt"...'
         $ADGroupNamesFilePath = '.\ad-group-names.txt'
@@ -74,8 +77,8 @@ function dumpActiveDirectoryGroupNames {
 function dumpActiveDirectoryUsers {
     param([System.Array]$ActiveDirectoryUsers)
     # todo: trebam li nešto uopće dodatno
-    $name = Read-Host '[?]Would you like to write Active Directory users to a file?[Y/n]'
-    if ($name -eq 'Y') {
+    # $name = Read-Host '[?]Would you like to write Active Directory users to a file?[Y/n]'
+    if ( 'Text' -eq $OutputFormat) {
         $current_dir = Get-Location
         '[*]Writing Active Directory users to file "' + $current_dir + '\ad-users.txt"...'
         $ADUsersPath = '.\ad-users.txt'
@@ -91,8 +94,7 @@ function dumpActiveDirectoryUsers {
 function dumpManagementGroups {
     param([System.Array]$ManagementGroups)
 
-    $name = Read-Host '[?] Would you like to write management groups to a file?[Y/n]'
-    if ($name -eq 'Y') {
+    if ('Text' -eq $OutputFormat) {
         $current_dir = Get-Location
         '[*] Writing management groups to file "' + $current_dir + '\management-groups.txt"...'
         $ManagementGroupsPath = '.\management-groups.txt'
@@ -102,11 +104,14 @@ function dumpManagementGroups {
 }
 
 function dumpResourcesSummary {
+    # todo: izvoz u csv?
     param([System.Array]$ResourceGroups)
     $AllResources = Get-AzResource
     '[*] Found ' + $AllResources.Count + ' total resources...'
-    $prompt = Read-Host '[?] Would you like to write Azure resources per group to a file?[Y/n]'   
-    if ( $prompt -eq 'Y') {
+    if (0 -eq $AllResources.Count) {
+        Return $Null
+    }
+    if ('Text' -eq $OutputFormat) {
         $current_dir = Get-Location
         '[*] Writing management groups to files with prefix "' + $current_dir + '\resources-*"...'
     }
@@ -129,8 +134,7 @@ function dumpResourcesSummary {
         }
     }
 
-
-
+    return $AllResources
 }
 
 function Main() {
@@ -172,7 +176,6 @@ function Main() {
         '[-] Sorry, user ' + $context.Account.Id + ' does not have authorization to view management groups'
     }
 
-    # todo: ispis korisnika koji mom korisniku dao dozvole
     '[*] Trying to fetch role assignment...'
     Try {
         Get-AzRoleAssignment -Verbose
@@ -184,15 +187,13 @@ function Main() {
 
     '[*] Trying to fetch resource groups...'
     $groups = dumpResourceGroups
-    # $groups.Count
 
-    dumpResourcesSummary -ResourceGroups $groups
+    $resources = dumpResourcesSummary -ResourceGroups $groups
 
+    $resources
     # todo: moguće je izlistati sve korisnike koji pripadaju pojedinoj grupi!!
-    # todo: što slijedeće :/
-    # todo: koji je logični korak nakon toga? ispis baš svih postojećih resursa :/
     # todo: pokretanje s argumentima koji će proširiti/suziti područja pretrage
-    
+
     '[!] Logging out of Azure...'
     Disconnect-AzAccount
     '[+] Successfully logged out of Azure, bye!!'
