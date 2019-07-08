@@ -1,5 +1,6 @@
 ﻿# Import-Module Az
 function checkSession {
+    # todo: autentifikacija pomoću Get-Credential!!!
     # [cmdletbinding()]
     $Error.Clear()
     $context = Get-AzContext
@@ -35,7 +36,8 @@ function dumpResourceGroups {
             '[*]Writing resource group dump to file "' + $current_dir + '\resource-groups.txt"...'
             $ResourceGroupFilePath = '.\resource-groups.txt'
             # Set-Content $ADGroupNamesFilePath $activeDirectoryGroupNames
-            $groups.ToArray() > $ResourceGroupFilePath
+            # $groups.ToArray() > $ResourceGroupFilePath
+            $groups > $ResourceGroupFilePath
             '[+]Active resource groups successfully written...'
         }
         Return $groups
@@ -97,6 +99,26 @@ function dumpManagementGroups {
     }
 }
 
+function dumpResources {
+    param([System.Array]$ResourceGroups)
+
+    $prompt = Read-Host '[?] Would you like to write Azure resources per group to a file?[Y/n]'
+    if($prompt -eq 'Y') {
+        $current_dir = Get-Location
+        '[*] Writing management groups to files with prefix "' + $current_dir + '\resources-*"...'
+        $ResourcesPathPrefix = '.\resources-'
+        # todo: razriješiti
+        $ResourceGroups | ForEach-Object -Process {
+            $Path = $ResourcesPathPrefix + $_.ResourceGroupName + '.txt'
+            '[*] Writing management groups to file "' + $Path + '" for resource group "' + $_.ResourceGroupName + '"...'
+            $resources = Get-AzResource -ResourceGroupName $_.ResourceGroupName
+            $resources > $Path
+            '[+] Successfully written resources to file for resource group "' + $_.ResourceGroupName + '"'
+        }
+
+    }
+}
+
 $context = checkSession
 
 $acc = $context.Account
@@ -111,7 +133,7 @@ $activeDirectoryGroups = Get-AzADGroup
 if ($activeDirectoryGroups.Count -gt 0) {
     '[+]Found ' + $activeDirectoryGroups.Count + ' Active Directory groups'
     
-    dumpActiveDirectoryGroupNames -ActiveDirectoryGroups $activeDirectoryGroups
+    # dumpActiveDirectoryGroupNames -ActiveDirectoryGroups $activeDirectoryGroups
 }
 
 '[*]Trying to fetch Active Directory users for domain ' + $context.Account.Id.Split('@')[1] + '...'
@@ -120,7 +142,7 @@ Try {
     if ($activeDirectoryUsers.Count -gt 0) {
         '[+]Found ' + $activeDirectoryUsers.Count + ' Active Directory users'
 
-        dumpActiveDirectoryUsers -ActiveDirectoryUsers $activeDirectoryUsers
+        # dumpActiveDirectoryUsers -ActiveDirectoryUsers $activeDirectoryUsers
     }
 }
 Catch {
@@ -129,14 +151,14 @@ Catch {
 
 '[*]Trying to fetch resource management groups for domain ' + $context.Account.Id.Split('@')[1] + '...'
 Try {
-    dumpManagementGroups -ManagementGroups  $(Get-AzManagementGroup -ErrorAction Stop) # na testiranju ne mogu dalje, pa ne znam kakav je output
+    # dumpManagementGroups -ManagementGroups  $(Get-AzManagementGroup -ErrorAction Stop) # na testiranju ne mogu dalje, pa ne znam kakav je output
 }
 Catch {
     '[-]Sorry, user ' + $context.Account.Id + ' does not have authorization to view management groups'
 }
 
 # todo: ispis korisnika koji mom korisniku dao dozvole
-'[*]Trying to fetch role assignment...'
+'[*] Trying to fetch role assignment...'
 Try {
     Get-AzRoleAssignment -Verbose
     # todo: proširenje
@@ -145,12 +167,17 @@ Catch {
     '[-]Unable to fetch role assignment...'
 }
 
-'[*]Trying to fetch resource groups...'
+'[*] Trying to fetch resource groups...'
 $groups = dumpResourceGroups
-$groups
+# $groups
 
-# dumpResourceGroups
+$groups | ForEach-Object -Process {
+    $group = $_
+    '[*] Dumping'
+    $group
+}
+
 # todo: moguće je izlistati sve korisnike koji pripadaju pojedinoj grupi!!
 # todo: što slijedeće :/
 # todo: koji je logični korak nakon toga? ispis baš svih postojećih resursa :/
-# Disconnect-AzAccount
+Disconnect-AzAccount
