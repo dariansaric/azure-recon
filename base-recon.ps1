@@ -1,10 +1,19 @@
 ﻿# Import-Module Az
+# Dozvoljeni output:
+#   - Text -> .txt datoteke
+#   - Console -> Ispis na konzolu !DEFAULT!
+#   - Html -> HTML dokument s hiper-vezama
+
 param(
     [System.String]$Scope = 'All',
-    [String]$OutputFormat = 'Text',
+    [String]$OutputFormat = 'Console',
     [PSCredential]$Credential = $(Get-Credential)
 )
-function checkSession {
+
+# Konstante
+$TextOutput = 'Text'
+$ConsoleOutput = 'Console'
+function Open-Session {
     # todo: autentifikacija pomoću Get-Credential!!!
     # [cmdletbinding()]
     $Error.Clear()
@@ -24,36 +33,33 @@ function checkSession {
     return $context
 }
 
-function dumpResourceGroups {
+function Get-ResourceGroups {
     # [cmdletbinding()]
     # param( [Microsoft.Azure.Commands.Profile.Models.Core.PSAzureContext]$context)
-    if ($Null -eq $context) {
-        Return $Null
-    }
+    # if ($Null -eq $context) {
+    #     Return $Null
+    # }
+    param([System.Array]$ResourceGroups)
     
-    $groups = Get-AzResourceGroup
-    '[+] Found ' + $groups.Count + ' resource groups...'
-    if ($groups.Count -gt 0) {
-        if ('Text' -eq $OutputFormat) {
+    '[+] Found ' + $ResourceGroups.Count + ' resource groups...'
+    if ($ResourceGroups.Count -gt 0) {
+        if ($TextOutput -eq $OutputFormat) {
             $current_dir = Get-Location
             '[*] Writing resource group dump to file "' + $current_dir + '\resource-groups.txt"...'
             $ResourceGroupFilePath = '.\resource-groups.txt'
 
             # $groups.ToArray() > $ResourceGroupFilePath
-            $groups > $ResourceGroupFilePath
+            $ResourceGroups > $ResourceGroupFilePath
             '[+] Active resource groups successfully written...'
         }
-        else {
+        elseif ($ConsoleOutput -eq $OutputFormat) {
             '[*] Dumping resource groups...'
-            $groups
+            $ResourceGroups
         }
-        Return $groups
     }
-
-    Return $Null
 }
 
-function dumpActiveDirectoryGroupNames {
+function Get-ActiveDirectoryGroupNames {
     param([System.Array]$ActiveDirectoryGroups)
     $activeDirectoryGroupNames = New-Object System.Collections.Generic.List[String]
     $ActiveDirectoryGroups | ForEach-Object -Process {
@@ -61,7 +67,7 @@ function dumpActiveDirectoryGroupNames {
         $activeDirectoryGroupNames.Add($group.DisplayName)
     }
 
-    if ('Text' -eq $OutputFormat) {
+    if ($TextOutput -eq $OutputFormat) {
         $current_dir = Get-Location
         '[*] Writing Active Directory group names to file "' + $current_dir + '\ad-group-names.txt"...'
         $ADGroupNamesFilePath = '.\ad-group-names.txt'
@@ -69,16 +75,16 @@ function dumpActiveDirectoryGroupNames {
         $activeDirectoryGroupNames.ToArray() > $ADGroupNamesFilePath
         '[+] Active Directory group names successfully written...'
     }
-    else {
+    elseif ($ConsoleOutput -eq $OutputFormat) {
         $activeDirectoryGroupNames
     }
 }
 
-function dumpActiveDirectoryUsers {
+function Get-ActiveDirectoryUsers {
     param([System.Array]$ActiveDirectoryUsers)
     # todo: trebam li nešto uopće dodatno
     # $name = Read-Host '[?]Would you like to write Active Directory users to a file?[Y/n]'
-    if ( 'Text' -eq $OutputFormat) {
+    if ( $TextOutput -eq $OutputFormat) {
         $current_dir = Get-Location
         '[*]Writing Active Directory users to file "' + $current_dir + '\ad-users.txt"...'
         $ADUsersPath = '.\ad-users.txt'
@@ -86,32 +92,37 @@ function dumpActiveDirectoryUsers {
         $ActiveDirectoryUsers > $ADUsersPath
         '[+]Active Directory users successfully written to file...'
     }
-    else {
+    elseif ($ConsoleOutput -eq $OutputFormat) {
+        '[*] Dumping all Active directory users...'
         $ActiveDirectoryUsers
     }
 }
 
-function dumpManagementGroups {
+function Get-ManagementGroups {
     param([System.Array]$ManagementGroups)
 
-    if ('Text' -eq $OutputFormat) {
+    if ($TextOutput -eq $OutputFormat) {
         $current_dir = Get-Location
         '[*] Writing management groups to file "' + $current_dir + '\management-groups.txt"...'
         $ManagementGroupsPath = '.\management-groups.txt'
         $ManagementGroups > $ManagementGroupsPath
         '[+] Management groups successfully written to file...'
     }
+    elseif ($ConsoleOutput -eq $OutputFormat) {
+        '[*] Dumping management groups...'
+        $ManagementGroups
+    }
 }
 
-function dumpResourcesSummary {
-    # todo: izvoz u csv?
-    param([System.Array]$ResourceGroups)
-    $AllResources = Get-AzResource
+function Get-Resources {
+    param(
+        [System.Array]$ResourceGroups,
+        [System.Array]$AllResources)
     '[*] Found ' + $AllResources.Count + ' total resources...'
     if (0 -eq $AllResources.Count) {
-        Return $Null
+        Return
     }
-    if ('Text' -eq $OutputFormat) {
+    if ($TextOutput -eq $OutputFormat) {
         $current_dir = Get-Location
         '[*] Writing management groups to files with prefix "' + $current_dir + '\resources-*"...'
     }
@@ -121,24 +132,27 @@ function dumpResourcesSummary {
             Return
         }
         $resources = Get-AzResource -ResourceGroupName $_.ResourceGroupName
-        if ($prompt -eq 'Y') {
+        if ($TextOutput -eq $OutputFormat) {
             $ResourcesPathPrefix = '.\resources-'
             $Path = $ResourcesPathPrefix + $_.ResourceGroupName + '.txt'
             '[*] Writing management groups to file "' + $Path + '" for resource group "' + $_.ResourceGroupName + '"...'
             $resources > $Path
             '[+] Successfully written resources to file for resource group "' + $_.ResourceGroupName + '"'
         }
-        else {
+        elseif ($ConsoleOutput -eq $OutputFormat) {
             '[*] Dumping resources for resource group "' + $_.ResourceGroupName + '":'
             $resources
         }
     }
 
-    return $AllResources
+    # return $AllResources
 }
 
 function Main() {
-    $context = checkSession
+    $context = Open-Session
+    if($Null -eq $context) {
+        Return
+    }
 
     $acc = $context.Account
     '[*] Logged user data: '
@@ -152,7 +166,7 @@ function Main() {
     if ($activeDirectoryGroups.Count -gt 0) {
         '[+] Found ' + $activeDirectoryGroups.Count + ' Active Directory groups'
     
-        dumpActiveDirectoryGroupNames -ActiveDirectoryGroups $activeDirectoryGroups
+        Get-ActiveDirectoryGroupNames -ActiveDirectoryGroups $activeDirectoryGroups
     }
 
     '[*] Trying to fetch Active Directory users for domain ' + $context.Account.Id.Split('@')[1] + '...'
@@ -161,7 +175,7 @@ function Main() {
         if ($activeDirectoryUsers.Count -gt 0) {
             '[+] Found ' + $activeDirectoryUsers.Count + ' Active Directory users'
 
-            dumpActiveDirectoryUsers -ActiveDirectoryUsers $activeDirectoryUsers
+            Get-ActiveDirectoryUsers -ActiveDirectoryUsers $activeDirectoryUsers
         }
     }
     Catch {
@@ -170,7 +184,7 @@ function Main() {
 
     '[*] Trying to fetch resource management groups for domain ' + $context.Account.Id.Split('@')[1] + '...'
     Try {
-        dumpManagementGroups -ManagementGroups  $(Get-AzManagementGroup -ErrorAction Stop) # na testiranju ne mogu dalje, pa ne znam kakav je output
+        Get-ManagementGroups -ManagementGroups  $(Get-AzManagementGroup -ErrorAction Stop) # na testiranju ne mogu dalje, pa ne znam kakav je output
     }
     Catch {
         '[-] Sorry, user ' + $context.Account.Id + ' does not have authorization to view management groups'
@@ -186,17 +200,21 @@ function Main() {
     }
 
     '[*] Trying to fetch resource groups...'
-    $groups = dumpResourceGroups
+    $groups = Get-AzResourceGroup
+    Get-ResourceGroups -ResourceGroups $groups
 
-    $resources = dumpResourcesSummary -ResourceGroups $groups
+    $resources = Get-AzResource
+    Get-Resources -ResourceGroups $groups -AllResources $resources
 
-    $resources
+    # dumpanje ključeva
     # todo: moguće je izlistati sve korisnike koji pripadaju pojedinoj grupi!!
     # todo: pokretanje s argumentima koji će proširiti/suziti područja pretrage
 
+
     '[!] Logging out of Azure...'
-    Disconnect-AzAccount
-    '[+] Successfully logged out of Azure, bye!!'
+    if ($Null -ne $(Disconnect-AzAccount)) {
+        '[+] Successfully logged out of Azure, bye!!'
+    }
 }
 
 Main
