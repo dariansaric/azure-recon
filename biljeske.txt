@@ -6,13 +6,13 @@
 06.06.2019.
 - napisan potpun modul za enumeraciju AD grupa, korisnika i pripadnosti AD grupama
 - napisan modul za enumeraciju Management grupa (moj account nema nikakav pristup)
-- slijedeći korak: enumeracija resursa -> komad po komad
+- slijedeći korak: enumeracija resursa -> komad po komad ✓
 
 08.07.2019.
 - Dovršen modul ispisa grupa resursa i samih resursa po grupama
 - Dodan zahtjev za izvozom i prikazom podataka u HTML
-- Dodan zahtjev za enumeracijom Key Vault usluge
-- Dodan zahtjev za dodavanjem argumenata naredbenog retka
+- Dodan zahtjev za enumeracijom Key Vault usluge ✓
+- Dodan zahtjev za dodavanjem argumenata naredbenog retka ✓
 
 09.07.2019.
 - Dovršen modul ispisa sadržaja KeyVault-ova
