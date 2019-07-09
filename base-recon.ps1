@@ -239,9 +239,35 @@ function Get-KeyVaults {
         }
 
     }
-
 }
 
+function Get-VMs {
+    param(
+        [System.Array]$Vms
+    )
+
+    '[*] Found ' + $Vms.Count + ' virtual machine instances'
+
+    if (0 -eq $Vms.Count) {
+        Return
+    }
+
+    switch($OutputFormat) {
+        $TextOutput {
+            $current_dir = Get-Location
+            $Path = '.\virtual-machines.txt'
+            '[*] Writing virtual machine information to file "' + $current_dir + '\' + $Path + '"...'
+            $Vms > $Path
+            '[+]Successfully written VM data to file...'
+        }
+        $ConsoleOutput {
+            '[*] Dumping information about virtual machines...'
+            $Vms
+        }
+    }
+
+
+}
 function Main() {
     Open-Session
     $context = Get-AzContext
@@ -261,7 +287,7 @@ function Main() {
     if ($activeDirectoryGroups.Count -gt 0) {
         '[+] Found ' + $activeDirectoryGroups.Count + ' Active Directory groups'
     
-        Get-ActiveDirectoryGroupNames -ActiveDirectoryGroups $activeDirectoryGroups
+        # Get-ActiveDirectoryGroupNames -ActiveDirectoryGroups $activeDirectoryGroups
     }
 
     '[*] Trying to fetch Active Directory users for domain ' + $context.Account.Id.Split('@')[1] + '...'
@@ -270,7 +296,7 @@ function Main() {
         if ($activeDirectoryUsers.Count -gt 0) {
             '[+] Found ' + $activeDirectoryUsers.Count + ' Active Directory users'
 
-            Get-ActiveDirectoryUsers -ActiveDirectoryUsers $activeDirectoryUsers
+            # Get-ActiveDirectoryUsers -ActiveDirectoryUsers $activeDirectoryUsers
         }
     }
     Catch {
@@ -279,7 +305,7 @@ function Main() {
 
     '[*] Trying to fetch resource management groups for domain ' + $context.Account.Id.Split('@')[1] + '...'
     Try {
-        Get-ManagementGroups -ManagementGroups  $(Get-AzManagementGroup -ErrorAction Stop) # na testiranju ne mogu dalje, pa ne znam kakav je output
+        # Get-ManagementGroups -ManagementGroups  $(Get-AzManagementGroup -ErrorAction Stop) # na testiranju ne mogu dalje, pa ne znam kakav je output
     }
     Catch {
         '[-] Sorry, user ' + $context.Account.Id + ' does not have authorization to view management groups'
@@ -296,17 +322,21 @@ function Main() {
 
     '[*] Trying to fetch resource groups...'
     $groups = Get-AzResourceGroup
-    Get-ResourceGroups -ResourceGroups $groups
+    # Get-ResourceGroups -ResourceGroups $groups
 
     '[*] Trying to fetch resources...'
     $resources = Get-AzResource
-    Get-Resources -ResourceGroups $groups -AllResources $resources
+    # Get-Resources -ResourceGroups $groups -AllResources $resources
 
-    # dumpanje ključeva
     '[*] Trying to fetch key vaults'
     $keyVaults = Get-AzKeyVault
     $keyVaults
-    Get-KeyVaults -KeyVaults $keyVaults
+    # Get-KeyVaults -KeyVaults $keyVaults
+
+    '[*] Enumerating VM-s...'
+    '[*] Trying to fetch VM-s'
+    $vms = Get-AzVM
+    Get-VMs -VMs $vms
     # todo: moguće je izlistati sve korisnike koji pripadaju pojedinoj grupi!!
     # todo: pokretanje s argumentima koji će proširiti/suziti područja pretrage
 
