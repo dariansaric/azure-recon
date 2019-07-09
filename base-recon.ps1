@@ -192,18 +192,20 @@ function Get-KeyVaults {
                 '[*] KeyVault: "' + $vault.VaultName + '": Writing contents to directory "' + $Path + '"'
                 if (0 -lt $secrets.Count) {
                     '[*] KeyVault: "' + $vault.VaultName + '": Writing secrets...'
-                    # todo: ispiši tajnu ako je moguće
+                    # todo: uljepšati ispis
                     foreach ($s in $secrets) {
                         $v = Get-AzKeyVaultSecret -VaultName $vault.VaultName -Name $s.Name
                         $s.Name >>($Path + 'secrets.txt')
                         $s >> $($Path + 'secrets.txt')
                         'Secret       : ' + $v.SecretValueText >> $($Path + 'secrets.txt')
                     }
-                    # $secrets > $($Path + 'secrets.txt')
                     '[+] KeyVault: "' + $vault.VaultName + '": Secrets successfully written to file...'
                 }
                 if (0 -lt $keys.Count) {
                     '[*] KeyVault: "' + $vault.VaultName + '": Writing keys...'
+                    # foreach ($k in $keys) {
+                        # $k
+                    # }
                     $keys > $($Path + 'keys.txt')
                     '[+] KeyVault: "' + $vault.VaultName + '": Keys successfully written to file...'
                 }
@@ -216,13 +218,20 @@ function Get-KeyVaults {
             $ConsoleOutput {
                 if (0 -lt $secrets.Count) {
                     '[+] KeyVault: "' + $vault.VaultName + '": Dumping secrets...'
-                    $secrets
+                    foreach ($s in $secrets) {
+                        # $v = Get-AzKeyVaultSecret -VaultName $vault.VaultName -Name $s.Name
+                        $s
+                        'Secret       : ' + $(Get-AzKeyVaultSecret -VaultName $vault.VaultName -Name $s.Name).SecretValueText
+                    }
+                    # $secrets
                 }
                 if (0 -lt $keys.Count) {
+                    # todo: nemam zasad pametnijeg posla
                     '[+] KeyVault: "' + $vault.VaultName + '": Dumping keys...'
                     $keys
                 }
                 if (0 -lt $certificates.Count) {
+                    #todo: nemam zasad pametnijeg posla
                     '[+] KeyVault: "' + $vault.VaultName + '": Dumping certificates...'
                     $certificates
                 }
