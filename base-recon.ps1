@@ -14,7 +14,6 @@ param(
 $TextOutput = 'Text'
 $ConsoleOutput = 'Console'
 function Open-Session {
-    # todo: autentifikacija pomoću Get-Credential!!!
     # [cmdletbinding()]
     $Error.Clear()
     $context = Get-AzContext
@@ -43,18 +42,20 @@ function Get-ResourceGroups {
     
     '[+] Found ' + $ResourceGroups.Count + ' resource groups...'
     if ($ResourceGroups.Count -gt 0) {
-        if ($TextOutput -eq $OutputFormat) {
-            $current_dir = Get-Location
-            '[*] Writing resource group dump to file "' + $current_dir + '\resource-groups.txt"...'
-            $ResourceGroupFilePath = '.\resource-groups.txt'
-
-            # $groups.ToArray() > $ResourceGroupFilePath
-            $ResourceGroups > $ResourceGroupFilePath
-            '[+] Active resource groups successfully written...'
-        }
-        elseif ($ConsoleOutput -eq $OutputFormat) {
-            '[*] Dumping resource groups...'
-            $ResourceGroups
+        switch ($OutputFormat) {
+            $TextOutput {
+                $current_dir = Get-Location
+                '[*] Writing resource group dump to file "' + $current_dir + '\resource-groups.txt"...'
+                $ResourceGroupFilePath = '.\resource-groups.txt'
+    
+                # $groups.ToArray() > $ResourceGroupFilePath
+                $ResourceGroups > $ResourceGroupFilePath
+                '[+] Active resource groups successfully written...'
+            }
+            $ConsoleOutput {
+                '[*] Dumping resource groups...'
+                $ResourceGroups
+            }
         }
     }
 }
@@ -62,21 +63,23 @@ function Get-ResourceGroups {
 function Get-ActiveDirectoryGroupNames {
     param([System.Array]$ActiveDirectoryGroups)
     $activeDirectoryGroupNames = New-Object System.Collections.Generic.List[String]
-    $ActiveDirectoryGroups | ForEach-Object -Process {
-        $group = $_
+    foreach ($group in $ActiveDirectoryGroups) {
         $activeDirectoryGroupNames.Add($group.DisplayName)
     }
 
-    if ($TextOutput -eq $OutputFormat) {
-        $current_dir = Get-Location
-        '[*] Writing Active Directory group names to file "' + $current_dir + '\ad-group-names.txt"...'
-        $ADGroupNamesFilePath = '.\ad-group-names.txt'
-        # Set-Content $ADGroupNamesFilePath $activeDirectoryGroupNames
-        $activeDirectoryGroupNames.ToArray() > $ADGroupNamesFilePath
-        '[+] Active Directory group names successfully written...'
-    }
-    elseif ($ConsoleOutput -eq $OutputFormat) {
-        $activeDirectoryGroupNames
+    switch ($OutputFormat) {
+        $TextOutput {
+            $current_dir = Get-Location
+            '[*] Writing Active Directory group names to file "' + $current_dir + '\ad-group-names.txt"...'
+            $ADGroupNamesFilePath = '.\ad-group-names.txt'
+            # Set-Content $ADGroupNamesFilePath $activeDirectoryGroupNames
+            $activeDirectoryGroupNames.ToArray() > $ADGroupNamesFilePath
+            '[+] Active Directory group names successfully written...'
+        }
+        $ConsoleOutput {
+            '[*] Dumping Active Directory group names...'
+            $activeDirectoryGroupNames
+        }
     }
 }
 
@@ -84,33 +87,37 @@ function Get-ActiveDirectoryUsers {
     param([System.Array]$ActiveDirectoryUsers)
     # todo: trebam li nešto uopće dodatno
     # $name = Read-Host '[?]Would you like to write Active Directory users to a file?[Y/n]'
-    if ( $TextOutput -eq $OutputFormat) {
-        $current_dir = Get-Location
-        '[*]Writing Active Directory users to file "' + $current_dir + '\ad-users.txt"...'
-        $ADUsersPath = '.\ad-users.txt'
-        # Set-Content $ADGroupNamesFilePath $activeDirectoryGroupNames
-        $ActiveDirectoryUsers > $ADUsersPath
-        '[+]Active Directory users successfully written to file...'
-    }
-    elseif ($ConsoleOutput -eq $OutputFormat) {
-        '[*] Dumping all Active directory users...'
-        $ActiveDirectoryUsers
+    switch ($OutputFormat) {
+        $TextOutput {
+            $current_dir = Get-Location
+            '[*]Writing Active Directory users to file "' + $current_dir + '\ad-users.txt"...'
+            $ADUsersPath = '.\ad-users.txt'
+            # Set-Content $ADGroupNamesFilePath $activeDirectoryGroupNames
+            $ActiveDirectoryUsers > $ADUsersPath
+            '[+]Active Directory users successfully written to file...'
+        }
+        $ConsoleOutput {
+            '[*] Dumping all Active directory users...'
+            $ActiveDirectoryUsers
+        }
     }
 }
 
 function Get-ManagementGroups {
     param([System.Array]$ManagementGroups)
 
-    if ($TextOutput -eq $OutputFormat) {
-        $current_dir = Get-Location
-        '[*] Writing management groups to file "' + $current_dir + '\management-groups.txt"...'
-        $ManagementGroupsPath = '.\management-groups.txt'
-        $ManagementGroups > $ManagementGroupsPath
-        '[+] Management groups successfully written to file...'
-    }
-    elseif ($ConsoleOutput -eq $OutputFormat) {
-        '[*] Dumping management groups...'
-        $ManagementGroups
+    switch ($OutputFormat) {
+        $TextOutput {
+            $current_dir = Get-Location
+            '[*] Writing management groups to file "' + $current_dir + '\management-groups.txt"...'
+            $ManagementGroupsPath = '.\management-groups.txt'
+            $ManagementGroups > $ManagementGroupsPath
+            '[+] Management groups successfully written to file...'    
+        }
+        $ConsoleOutput {
+            '[*] Dumping management groups...'
+            $ManagementGroups
+        }
     }
 }
 
@@ -127,21 +134,24 @@ function Get-Resources {
         '[*] Writing management groups to files with prefix "' + $current_dir + '\resources-*"...'
     }
 
-    $ResourceGroups | ForEach-Object -Process {
-        if ($Null -eq $_.ResourceGroupName) {
+    foreach ($group in $ResourceGroups) {
+    
+        if ($Null -eq $group.ResourceGroupName) {
             Return
         }
-        $resources = Get-AzResource -ResourceGroupName $_.ResourceGroupName
-        if ($TextOutput -eq $OutputFormat) {
-            $ResourcesPathPrefix = '.\resources-'
-            $Path = $ResourcesPathPrefix + $_.ResourceGroupName + '.txt'
-            '[*] Writing management groups to file "' + $Path + '" for resource group "' + $_.ResourceGroupName + '"...'
-            $resources > $Path
-            '[+] Successfully written resources to file for resource group "' + $_.ResourceGroupName + '"'
-        }
-        elseif ($ConsoleOutput -eq $OutputFormat) {
-            '[*] Dumping resources for resource group "' + $_.ResourceGroupName + '":'
-            $resources
+        $resources = Get-AzResource -ResourceGroupName $group.ResourceGroupName
+        switch ($OutputFormat) {
+            $TextOutput {
+                $ResourcesPathPrefix = '.\resources-'
+                $Path = $ResourcesPathPrefix + $group.ResourceGroupName + '.txt'
+                '[*] Writing management groups to file "' + $Path + '" for resource group "' + $group.ResourceGroupName + '"...'
+                $resources > $Path
+                '[+] Successfully written resources to file for resource group "' + $group.ResourceGroupName + '"'
+            }
+            $ConsoleOutput {
+                '[*] Dumping resources for resource group "' + $group.ResourceGroupName + '":'
+                $resources
+            }
         }
     }
 
@@ -158,8 +168,7 @@ function Get-KeyVaults {
 
     '[+] Found ' + $KeyVaults.Count + ' key vaults...'
 
-    foreach ($vault in $KeyVaults)
-    {
+    foreach ($vault in $KeyVaults) {
         '[*] Dumping data found in vault: ' + $vault.VaultName
         $secrets = Get-AzKeyVaultSecret -VaultName $vault.VaultName
         '[*] KeyVault "' + $vault.VaultName + '": Found ' + $secrets.Count + ' secrets...'
@@ -168,26 +177,20 @@ function Get-KeyVaults {
         $certificates = Get-AzKeyVaultCertificate -VaultName $vault.VaultName
         '[*] KeyVault "' + $vault.VaultName + '": Found ' + $certificates.Count + ' certificates'
 
-        switch ($OutputFormat)
-        {
-            $TextOutput
-            {
+        switch ($OutputFormat) {
+            $TextOutput {
                 #todo
             }
-            $ConsoleOutput
-            {
-                if (0 -lt $secrets.Count)
-                {
+            $ConsoleOutput {
+                if (0 -lt $secrets.Count) {
                     '[+] KeyVault: "' + $vault.VaultName + '": Dumping secrets...'
                     $secrets
                 }
-                if(0 -lt $keys.Count)
-                {
+                if (0 -lt $keys.Count) {
                     '[+] KeyVault: "' + $vault.VaultName + '": Dumping keys...'
                     $keys
                 }
-                if(0 -lt $certificates.Count)
-                {
+                if (0 -lt $certificates.Count) {
                     '[+] KeyVault: "' + $vault.VaultName + '": Dumping certificates...'
                     $certificates
                 }
