@@ -19,3 +19,5 @@
 - Potrebno naći način da se pri pozivu funkcije i dalje ispisuju sranja
 - Dodan zahtjev enumeracije VM-ova
 - Dodan zahtjev enumeracije BP-ova
+- Potrebne informacije o tome kako dodatno iskoristiti pronađene ključeve i certifikate
+- Pronađeni ključevi i certifikati se za običan HTTP zahtjev vraćaju kao JSON WebToken
