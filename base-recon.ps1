@@ -18,7 +18,7 @@ function Open-Session {
     $Error.Clear()
     $context = Get-AzContext
     if ($Null -eq $context) {
-        # todo: ne radi ispis čuda u funkciji
+        # todo: ne radi ispis čuda u funkciji, EDIT: privremeno popravljeno
         '[X] You are not logged in on any Azure service, login with a username and password...'
         '[*] Logging in to Azure with custom credentials...'
         $connection = $Null
@@ -172,6 +172,8 @@ function Get-KeyVaults {
     }
 
     '[+] Found ' + $KeyVaults.Count + ' key vaults...'
+    $current_dir = Get-Location
+    '[*] Writing key vault contents in directory "' + $current_dir + "\key-vault\..."
 
     foreach ($vault in $KeyVaults) {
         '[*] Dumping data found in vault: ' + $vault.VaultName
@@ -182,9 +184,34 @@ function Get-KeyVaults {
         $certificates = Get-AzKeyVaultCertificate -VaultName $vault.VaultName
         '[*] KeyVault "' + $vault.VaultName + '": Found ' + $certificates.Count + ' certificates'
 
+        $trash = mkdir 'key-vault'
         switch ($OutputFormat) {
             $TextOutput {
-                #todo
+                $Path = '.\key-vault\' + $vault.VaultName + '\'
+                $trash = mkdir $Path
+                '[*] KeyVault: "' + $vault.VaultName + '": Writing contents to directory "' + $Path + '"'
+                if (0 -lt $secrets.Count) {
+                    '[*] KeyVault: "' + $vault.VaultName + '": Writing secrets...'
+                    # todo: ispiši tajnu ako je moguće
+                    foreach ($s in $secrets) {
+                        $v = Get-AzKeyVaultSecret -VaultName $vault.VaultName -Name $s.Name
+                        $s.Name >>($Path + 'secrets.txt')
+                        $s >> $($Path + 'secrets.txt')
+                        'Secret       : ' + $v.SecretValueText >> $($Path + 'secrets.txt')
+                    }
+                    # $secrets > $($Path + 'secrets.txt')
+                    '[+] KeyVault: "' + $vault.VaultName + '": Secrets successfully written to file...'
+                }
+                if (0 -lt $keys.Count) {
+                    '[*] KeyVault: "' + $vault.VaultName + '": Writing keys...'
+                    $keys > $($Path + 'keys.txt')
+                    '[+] KeyVault: "' + $vault.VaultName + '": Keys successfully written to file...'
+                }
+                if (0 -lt $certificates.Count) {
+                    '[*] KeyVault: "' + $vault.VaultName + '": Writing certificates...'
+                    $certificates > $($Path + 'certificates.txt')
+                    '[+] KeyVault: "' + $vault.VaultName + '": Certificates successfully written to file...'
+                }
             }
             $ConsoleOutput {
                 if (0 -lt $secrets.Count) {
