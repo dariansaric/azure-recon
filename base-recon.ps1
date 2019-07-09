@@ -7,7 +7,7 @@
 param(
     [System.String]$Scope = 'All',
     [String]$OutputFormat = 'Console',
-    [PSCredential]$Credential = $(Get-Credential)
+    [PSCredential]$Credential
 )
 
 # Konstante
@@ -19,9 +19,15 @@ function Open-Session {
     $context = Get-AzContext
     if ($Null -eq $context) {
         # todo: ne radi ispis čuda u funkciji
-        "[X] You are not logged in on any Azure service, login with a username and password..."
+        '[X] You are not logged in on any Azure service, login with a username and password...'
         '[*] Logging in to Azure with custom credentials...'
-        $connection = Connect-AzAccount -Credential $Credential
+        $connection = $Null
+        if ($Null -eq $Credential) {
+            $connection = Connect-AzAccount -Credential $(Get-Credential)
+        }
+        else {
+            $connection = Connect-AzAccount -Credential $Credential
+        }
         if ($Null -eq $connection) {
             '[-] Login failed, check your credentials and try again!'
             Return $Null
@@ -29,7 +35,6 @@ function Open-Session {
         $context = Get-AzContext -ErrorAction Continue
     }
     '[+] Logged in as  ' + $context.Account.Id
-    return $context
 }
 
 function Get-ResourceGroups {
@@ -202,7 +207,8 @@ function Get-KeyVaults {
 }
 
 function Main() {
-    $context = Open-Session
+    Open-Session
+    $context = Get-AzContext
     if ($Null -eq $context) {
         Return
     }
