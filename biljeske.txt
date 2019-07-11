@@ -17,7 +17,9 @@
 09.07.2019.
 - Dovršen modul ispisa sadržaja KeyVault-ova
 - Potrebno naći način da se pri pozivu funkcije i dalje ispisuju sranja
-- Dodan zahtjev enumeracije VM-ova
+- Dodan zahtjev enumeracije VM-ova ✓
 - Dodan zahtjev enumeracije BP-ova
 - Potrebne informacije o tome kako dodatno iskoristiti pronađene ključeve i certifikate
 - Pronađeni ključevi i certifikati se za običan HTTP zahtjev vraćaju kao JSON WebToken
+
+11.07.2019.
