@@ -11,6 +11,8 @@ At the moment it can enumerate following services:
     <li><b>Key Vaults and their content</b></li>
     <li><b>Virtual Machines</b></li>
 </ul>
-<h1>Usage</h1>
-```.\base-recon.ps1 [-Credential <credentials>] [-OutputFormat (Console|Text)]```
-    
+###Usage
+```
+.\base-recon.ps1 [-Credential <credentials>] [-OutputFormat (Console|Text)]
+```
+  
