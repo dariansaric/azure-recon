@@ -13,6 +13,7 @@ param(
 # Konstante
 $TextOutput = 'Text'
 $ConsoleOutput = 'Console'
+$HTMLOutput = 'Html'
 function Open-Session {
     # [cmdletbinding()]
     $Error.Clear()
@@ -255,9 +256,18 @@ function Get-VMs {
     switch($OutputFormat) {
         $TextOutput {
             $current_dir = Get-Location
-            $Path = '.\virtual-machines.txt'
+            $Path = 'virtual-machines.txt'
             '[*] Writing virtual machine information to file "' + $current_dir + '\' + $Path + '"...'
-            $Vms > $Path
+            
+            'Virtual machine information: ' > $Path
+            foreach ($vm in $Vms) {
+                $sb = [System.Text.StringBuilder]::new()
+                [Void]$sb.AppendLine('Name    : ' + $vm.Name)
+                [Void]$sb.AppendLine('VM Id : ' + $vm.VmId)
+                [Void]$sb.AppendLine('Resource ID : ' + $vm.Id)
+                $sb.ToString() >> $Path
+            }
+
             '[+]Successfully written VM data to file...'
         }
         $ConsoleOutput {
@@ -330,7 +340,7 @@ function Main() {
 
     '[*] Trying to fetch key vaults'
     $keyVaults = Get-AzKeyVault
-    $keyVaults
+    # $keyVaults
     # Get-KeyVaults -KeyVaults $keyVaults
 
     '[*] Enumerating VM-s...'
