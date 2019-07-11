@@ -23,3 +23,4 @@
 - Pronađeni ključevi i certifikati se za običan HTTP zahtjev vraćaju kao JSON WebToken
 
 11.07.2019.
+- Dodan zahtjev enumeracije Web poslužitelja i usluga

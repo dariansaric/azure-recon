@@ -347,6 +347,13 @@ function Main() {
     '[*] Trying to fetch VM-s'
     $vms = Get-AzVM
     Get-VMs -VMs $vms
+
+    # todo
+    # '[*] Enumerating Web servers...'
+    # '[*] Enumerating Database servers...'
+    # '[*] Trying to fetch Database servers...'
+    
+    
     # todo: moguće je izlistati sve korisnike koji pripadaju pojedinoj grupi!!
     # todo: pokretanje s argumentima koji će proširiti/suziti područja pretrage
 
