@@ -12,5 +12,5 @@ At the moment it can enumerate following services:
     <li><b>Virtual Machines</b></li>
 </ul>
 <h1>Usage</h1>
-.base-recon.ps1 [-Credential <credentials>] [-OutputFormat (Console|Text)]
+```.\base-recon.ps1 [-Credential <credentials>] [-OutputFormat (Console|Text)]```
     
