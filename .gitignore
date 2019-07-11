@@ -1,5 +1,5 @@
 ad-group-names.txt
 ad-users.txt
 resource*.txt
-
-key-vault/super-secret-vault/secrets.txt
+virtual-machines.txt
+key-vault/*

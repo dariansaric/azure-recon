@@ -13,6 +13,7 @@ param(
 # Konstante
 $TextOutput = 'Text'
 $ConsoleOutput = 'Console'
+$HTMLOutput = 'Html'
 function Open-Session {
     # [cmdletbinding()]
     $Error.Clear()
@@ -239,9 +240,44 @@ function Get-KeyVaults {
         }
 
     }
-
 }
 
+function Get-VMs {
+    param(
+        [System.Array]$Vms
+    )
+
+    '[*] Found ' + $Vms.Count + ' virtual machine instances'
+
+    if (0 -eq $Vms.Count) {
+        Return
+    }
+
+    switch($OutputFormat) {
+        $TextOutput {
+            $current_dir = Get-Location
+            $Path = 'virtual-machines.txt'
+            '[*] Writing virtual machine information to file "' + $current_dir + '\' + $Path + '"...'
+            
+            'Virtual machine information: ' > $Path
+            foreach ($vm in $Vms) {
+                $sb = [System.Text.StringBuilder]::new()
+                [Void]$sb.AppendLine('Name    : ' + $vm.Name)
+                [Void]$sb.AppendLine('VM Id : ' + $vm.VmId)
+                [Void]$sb.AppendLine('Resource ID : ' + $vm.Id)
+                $sb.ToString() >> $Path
+            }
+
+            '[+]Successfully written VM data to file...'
+        }
+        $ConsoleOutput {
+            '[*] Dumping information about virtual machines...'
+            $Vms
+        }
+    }
+
+
+}
 function Main() {
     Open-Session
     $context = Get-AzContext
@@ -302,11 +338,15 @@ function Main() {
     $resources = Get-AzResource
     Get-Resources -ResourceGroups $groups -AllResources $resources
 
-    # dumpanje ključeva
     '[*] Trying to fetch key vaults'
     $keyVaults = Get-AzKeyVault
-    $keyVaults
+    # $keyVaults
     Get-KeyVaults -KeyVaults $keyVaults
+
+    '[*] Enumerating VM-s...'
+    '[*] Trying to fetch VM-s'
+    $vms = Get-AzVM
+    Get-VMs -VMs $vms
     # todo: moguće je izlistati sve korisnike koji pripadaju pojedinoj grupi!!
     # todo: pokretanje s argumentima koji će proširiti/suziti područja pretrage
 
